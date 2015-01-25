@@ -1,0 +1,155 @@
+---
+output: html_document
+---
+# Assigment
+
+You work for Motor Trend, a magazine about the automobile industry. Looking at a data set of a collection of cars, they are interested in exploring the relationship between a set of variables and miles per gallon (MPG) (outcome). They are particularly interested in the following two questions:
+
+"Is an automatic or manual transmission better for MPG"
+"Quantify the MPG difference between automatic and manual transmissions"
+
+<div style="page-break-after: always;"></div>
+
+
+### Exploratory data analysis
+Let us explore the mtcars dataset
+```{r include=FALSE}
+data(mtcars)
+head(mtcars)
+```
+
+Let us convert to factors
+```{r echo=FALSE}
+mtcars$cyl <- factor(mtcars$cyl)
+mtcars$vs <- factor(mtcars$vs)
+mtcars$am <- factor(mtcars$am, labels = c("Automatic", "Manual"))
+mtcars$gear <- factor(mtcars$gear)
+mtcars$carb <- factor(mtcars$carb)
+```
+
+First let us make a boxplot for mpg for automatic and manual.
+```{r include=FALSE, fig.height=4, fig.width=4}
+boxplot(mpg ~ am, data = mtcars,
+        xlab = "Automatic/Manual", ylab = "MPG",
+        main = "MPG vs Automatic/Manual", col = c("yellow", "green"), 
+        names = c("Automatic", "Manual"))
+```
+
+From the plot we can see that the manual has a higher MPG than the automatic. 
+
+To investigate the relation among the variables let us do a pairwise plot
+```{r include=FALSE, fig.height=4, fig.width=4}
+p1ot = pairs(mtcars, panel = panel.smooth, main = "Pairwise plot")
+```
+
+We can see that there is a linear relationship between mpg and cyl, disp, hp, drat, wt, qsec, vs and am.
+
+Let us employ a linear model with a fit for all variables to see which are most significant.
+```{r include=FALSE}
+fit <- lm(mpg ~ ., data = mtcars)
+summary(fit)
+```
+
+From the summary of fit we can find the most significant (lowest p-values) coefficients to be wt (0.0946) and hp (0.0939).
+
+### Model selection
+Let us use a stepwise process to find the model with the best predictors. 
+```{r include=FALSE}
+step_model <- step(lm(mpg ~ ., data = mtcars), trace = 0)
+summary(step_model)
+```
+
+We can see that the best predictors were found using a model with cyl, hp, wt and am. Adjusted R-squared was 84% meaning that these predictors can account for 84% of the variability.
+
+Let us compare the new model with a basic model only employing transmission type as predictor.
+```{r include=FALSE}
+initial_model <- lm(mpg ~ am, data = mtcars)
+compare <- anova(initial_model, step_model)
+compare
+```
+The p-value is 1.68e-08 which is really small which indicates that the added predictors are significant. 
+
+### Analysis
+Let us plot the residuals of the model we found (step_model).
+```{r include=FALSE, fig.height=4, fig.width=4}
+par(mfrow=c(2, 2))
+plot(step_model)
+```
+
+From the plot we can see that the regression model is well fit by looking at the residuals vs fitted. There is no pattern between the residuals and the fitted. The Normal Q-Q plot shows that the points line up which means that the distribution is normal and the model predictions are accurate.
+
+The Scale-Location and Residuals vs Leverage plots show that the points are in groups with none too far from the center which indicates that no point had too much leverage.
+
+### Statistical test
+A t-test was performed to compare the two transmission types. The null hypothesis could be discarded for a p-value greater than 0.05.
+
+```{r include=FALSE}
+t_test <- t.test(mpg ~ am, data = mtcars)
+t_test
+```
+
+### Summary
+A regression model was found lm(mpmg ~ cyl + hp + wt + am) and according to this model manual transmission has 1.81 MPG more than automatic.
+
+<div style="page-break-after: always;"></div>
+
+# Appendix
+
+### Explore the mtcars data set
+```{r}
+data(mtcars)
+head(mtcars)
+```
+
+### Convert to factors
+```{r}
+mtcars$cyl <- factor(mtcars$cyl)
+mtcars$vs <- factor(mtcars$vs)
+mtcars$am <- factor(mtcars$am, labels = c("Automatic", "Manual"))
+mtcars$gear <- factor(mtcars$gear)
+mtcars$carb <- factor(mtcars$carb)
+```
+
+### Boxplot automatic vs manual
+```{r fig.height=4, fig.width=4}
+boxplot(mpg ~ am, data = mtcars,
+        xlab = "Automatic/Manual", ylab = "MPG",
+        main = "MPG vs Automatic/Manual", col = c("yellow", "green"), 
+        names = c("Automatic", "Manual"))
+```
+
+### Pairwise plot
+```{r fig.height=4, fig.width=4}
+p1ot = pairs(mtcars, panel = panel.smooth, main = "Pairwise plot")
+```
+
+### Linear model
+```{r}
+fit <- lm(mpg ~ ., data = mtcars)
+summary(fit)
+```
+
+### Model selection
+```{r}
+step_model <- step(lm(mpg ~ ., data = mtcars), trace = 0)
+summary(step_model)
+```
+
+### Compare new model with basic model
+```{r}
+initial_model <- lm(mpg ~ am, data = mtcars)
+compare <- anova(initial_model, step_model)
+compare
+```
+
+### Plot residuals of step model
+```{r fig.height=4, fig.width=4}
+par(mfrow=c(2, 2))
+plot(step_model)
+```
+
+### t-test
+```{r}
+t_test <- t.test(mpg ~ am, data = mtcars)
+t_test
+```
